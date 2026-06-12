@@ -609,10 +609,10 @@ with tabs[3]:
                                    labels={'cabezas':'Cabezas','anio':'Año','categoria':'Especie'})
                     fig_e = apply_premium_layout(fig_e,f"N° de cabezas por especie · {lbl}",
                                                  "Cabezas","Año",is_bar=True)
-                    st.plotly_chart(fig_e,use_container_width=True, key="bac2b206")
+                    st.plotly_chart(fig_e,use_container_width=True, key=f"esp_bar_{esp_k}")
             with c2:
                 st.plotly_chart(safe_line(D[esp_k],f"Tendencia de cabezas por especie · {lbl}",
-                                          "Cabezas","Año"),use_container_width=True, key="908b6d0a")
+                                          "Cabezas","Año"),use_container_width=True, key=f"esp_line_{esp_k}")
 
             st.markdown(f"<div class='section-header-panel'>Productores Pecuarios · {lbl}</div>", unsafe_allow_html=True)
             c3,c4 = st.columns(2)
@@ -626,7 +626,7 @@ with tabs[3]:
                                    labels={'productores':'Productores','categoria':'Especie','anio':'Año'})
                     fig_p = apply_premium_layout(fig_p,f"Productores pecuarios por especie · {lbl}",
                                                  "Productores","Especie",is_bar=True)
-                    st.plotly_chart(fig_p,use_container_width=True, key="54af2379")
+                    st.plotly_chart(fig_p,use_container_width=True, key=f"prod_bar_{prod_k}")
             with c4:
                 rows_v = []
                 for esp,yv in D[prod_k].items():
@@ -643,7 +643,7 @@ with tabs[3]:
                                           textposition='outside'))
                     fv = apply_premium_layout(fv,f"Variación % productores por especie · {lbl}",
                                               "Variación %","")
-                    st.plotly_chart(fv,use_container_width=True, key="68aebdc8")
+                    st.plotly_chart(fv,use_container_width=True, key=f"prod_var_{prod_k}")
 
 # ══════════════════════════════════════════════
 # TAB 4 — CAPACIDAD DE SUPERFICIE
