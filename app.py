@@ -128,26 +128,34 @@ def leer(file_bytes):
         yc = yc or YR20
         df = xl.parse(sh, header=None)
         out = {}
-        row = 11
-        for s in range(n_sex):
-            if row >= len(df): break
-            sexo = str(df.iloc[row, sex_col]).strip()
-            row += 1
-            for c in range(n_cat):
-                if row >= len(df): break
-                cat = str(df.iloc[row, cat_col]).strip()
-                if not cat or cat == 'nan':
-                    row += 1; continue
-                key = f"{sexo} · {cat}"
-                vals = {}
-                for yr, col in yc.items():
-                    if col < df.shape[1]:
-                        v = df.iloc[row, col]
-                        if pd.notna(v):
-                            try: vals[yr] = round(float(v), 2)
-                            except: pass
-                if vals: out[key] = vals
-                row += 1
+        sexo_actual = None
+        # Recorre filas desde 11 hasta encontrar 'Región' o agotar bloques
+        count = 0
+        for row in range(11, min(11 + n_sex * (n_cat + 2), len(df))):
+            sx = str(df.iloc[row, sex_col]).strip()
+            cat = str(df.iloc[row, cat_col]).strip()
+            # Actualiza sexo cuando aparece (Hombre/Mujer); si nan, mantiene el anterior
+            if sx and sx != 'nan':
+                if 'Región' in sx or 'Costa' in sx or 'Sierra' in sx:
+                    break
+                sexo_actual = sx
+            if not cat or cat == 'nan':
+                continue
+            if 'Región' in cat:
+                break
+            key = f"{sexo_actual} · {cat}"
+            vals = {}
+            for yr, col in yc.items():
+                if col < df.shape[1]:
+                    v = df.iloc[row, col]
+                    if pd.notna(v):
+                        try: vals[yr] = round(float(v), 2)
+                        except: pass
+            if vals:
+                out[key] = vals
+                count += 1
+            if count >= n_sex * n_cat:
+                break
         return out
 
     def especie(sh, label_col, yc=None):
