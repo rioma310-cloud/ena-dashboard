@@ -494,12 +494,12 @@ with k4:
     """, unsafe_allow_html=True)
 
 # ── Sección de Resumen Ejecutivo de Datos ───────────────────────────────────
-st.markdown("<div class="executive-insight-box">"
+st.markdown(f"<div class='executive-insight-box'>"
             f"<b>Resumen Crítico de Inteligencia Sectorial:</b> Al cierre del ejercicio fiscal <b>{yr_max}</b>, el número consolidado "
             f"de unidades productoras a nivel nacional experimentó una variación neta del <b>{d_pct:+.2f}%</b> en comparación con "
             f"el ciclo básico del 2023. Los componentes demográficos revelan cambios estructurales profundos en la distribución "
             f"por grupos etarios y niveles de instrucción formal alcanzados."
-            "</div>", unsafe_allow_html=True)
+            f"</div>", unsafe_allow_html=True)
 
 # ── Estructura de Navegación por Pestañas Técnicas ───────────────────────────
 tabs = st.tabs([
