@@ -53,6 +53,7 @@ check_password()
 C = {
     "verde": "#0F766E",
     "azul": "#1E3A8A",
+    "rosa": "#EC4899",
     "naranja": "#EA580C",
     "rojo": "#DC2626",
     "morado": "#7C3AED",
