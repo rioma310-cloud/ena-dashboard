@@ -27,7 +27,7 @@ def check_password():
         <div style="max-width:400px;margin:90px auto;padding:44px 40px;
                     background:#fff;border-radius:16px;text-align:center;
                     box-shadow:0 8px 32px rgba(30,58,138,0.13);
-                    border-top:5px solid #1E3A8A;">
+                    border-top:5px solid #1a4731;">
           <div style="font-size:44px;margin-bottom:10px;">🌾</div>
           <div style="font-size:19px;font-weight:700;color:#0F172A;margin-bottom:4px;">
             Panel Ejecutivo ENA</div>
@@ -50,11 +50,11 @@ check_password()
 
 # ── Paleta y constantes ───────────────────────────────────────────────────────
 C = dict(
-    azul="#1E3A8A", verde="#0F766E", lila="#7C3AED", naranja="#EA580C",
+    azul="#1E3A8A", verde="#1d9e75", lila="#7C3AED", naranja="#d85a30",
     teal="#0891B2", exito="#16A34A", rojo="#DC2626", gris="#64748B",
-    azul_lt="#EFF6FF", verde_lt="#F0FDF4", naranja_lt="#FFF7ED"
+    verde_dk="#1a4731", azul_lt="#EFF6FF", verde_lt="#F0FDF4", naranja_lt="#FFF7ED"
 )
-PAL = ["#1E3A8A","#0F766E","#7C3AED","#EA580C","#0891B2","#16A34A","#DC2626","#64748B",
+PAL = ["#1d9e75","#1E3A8A","#d85a30","#7C3AED","#0891B2","#ba7517","#d4537e","#64748B",
        "#0284C7","#15803D","#9333EA","#C2410C"]
 
 YEARS = [2023, 2024, 2025, 2026]
@@ -71,17 +71,17 @@ st.markdown("""
 [data-testid="stSidebar"] * { color:#F8FAFC !important; }
 .stTabs [data-baseweb="tab-list"] { gap:6px; background:#E2E8F0; padding:5px; border-radius:10px; }
 .stTabs [data-baseweb="tab"] { padding:9px 18px; border-radius:7px; color:#475569; font-weight:600; border:none; }
-.stTabs [aria-selected="true"] { background:#1E3A8A !important; color:#fff !important; box-shadow:0 2px 6px rgba(30,58,138,0.25); }
+.stTabs [aria-selected="true"] { background:#1a4731 !important; color:#fff !important; box-shadow:0 2px 6px rgba(26,71,49,0.25); }
 .kpi { background:#fff; border:1px solid #E2E8F0; border-radius:12px; padding:18px 20px;
        box-shadow:0 1px 3px rgba(0,0,0,0.06); }
 .kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#64748B; margin-bottom:6px; }
 .kpi-val { font-size:26px; font-weight:700; color:#0F172A; line-height:1.1; }
 .kpi-d   { font-size:11px; margin-top:5px; font-weight:500; }
 .pos { color:#16A34A; } .neg { color:#DC2626; } .neu { color:#64748B; }
-.insight { background:#EFF6FF; border-left:4px solid #1E3A8A; border-radius:8px;
+.insight { background:#EFF6FF; border-left:4px solid #1d9e75; border-radius:8px;
            padding:14px 16px; margin:12px 0; font-size:12px; color:#1E3A8A; line-height:1.6; }
 .sec { font-size:13px; font-weight:700; color:#0F172A; text-transform:uppercase;
-       letter-spacing:.06em; border-bottom:2px solid #1E3A8A; padding-bottom:4px; margin:20px 0 14px; }
+       letter-spacing:.06em; border-bottom:2px solid #1d9e75; padding-bottom:4px; margin:20px 0 14px; }
 .badge-pos { background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:6px;
              font-size:11px; font-weight:600; }
 .badge-neg { background:#FEE2E2; color:#B91C1C; padding:2px 8px; border-radius:6px;
@@ -252,7 +252,9 @@ def trend_line(d, title, val_label='%', fmt='.1f', proj=True):
     return fig
 
 def bar_grupo(d, title, val_label='%', stack=False):
+    if not d: return go.Figure().update_layout(title=title, **LY())
     df = df_long(d)
+    if df.empty: return go.Figure().update_layout(title=title, **LY())
     cats = df['categoria'].unique().tolist()
     cmap = {c: PAL[i % len(PAL)] for i,c in enumerate(cats)}
     mode = 'stack' if stack else 'group'
@@ -267,14 +269,18 @@ def bar_grupo(d, title, val_label='%', stack=False):
     return fig
 
 def line_multi(d, title, val_label='%'):
+    if not d:
+        return go.Figure().update_layout(title=title, **LY())
     df = df_long(d)
+    if df.empty or 'categoria' not in df.columns:
+        return go.Figure().update_layout(title=title, **LY())
     cats = df['categoria'].unique().tolist()
     cmap = {c: PAL[i % len(PAL)] for i,c in enumerate(cats)}
     fig = px.line(df, x='anio', y='valor', color='categoria',
                   color_discrete_map=cmap, markers=True,
                   labels={'valor':val_label,'anio':'Año','categoria':''},
                   title=title)
-    fig.update_traces(line_width=2.2, marker_size=7)
+    fig.update_traces(line_width=2.5, marker_size=8)
     fig.update_layout(**LY())
     return fig
 
@@ -313,7 +319,7 @@ with st.sidebar:
 # ── Sin archivo ───────────────────────────────────────────────────────────────
 if uploaded is None:
     st.markdown("""
-    <div style="background:linear-gradient(135deg,#1E3A8A,#1d4ed8);color:#fff;
+    <div style="background:linear-gradient(135deg,#1a4731,#1d6b45);color:#fff;
                 padding:24px 28px;border-radius:12px;margin-bottom:20px;">
       <h1 style="font-size:20px;font-weight:700;margin:0;">
         🌾 Panel Ejecutivo ENA · Perfil del Productor Agropecuario Nacional</h1>
@@ -332,7 +338,7 @@ yr_max  = max(y for y in YEARS if y in tot)
 yr_prev = yr_max - 1 if (yr_max-1) in tot else sorted(tot.keys())[-2]
 
 st.markdown(f"""
-<div style="background:linear-gradient(135deg,#1E3A8A,#1d4ed8);color:#fff;
+<div style="background:linear-gradient(135deg,#1a4731,#1d6b45);color:#fff;
             padding:18px 24px;border-radius:12px;margin-bottom:18px;
             display:flex;justify-content:space-between;align-items:center;">
   <div>
@@ -460,7 +466,7 @@ with tabs[0]:
         sign = "▲" if d>=0 else "▼"
         with col:
             st.markdown(f"""
-            <div class="kpi" style="border-left:3px solid #1E3A8A">
+            <div class="kpi" style="border-left:3px solid #1d9e75">
               <div class="kpi-lbl">{lbl}</div>
               <div style="font-size:20px;font-weight:700;color:#0F172A;">{val_ult:.1f}{unidad}</div>
               <div class="kpi-d {dc}">{sign} {abs(d):.1f}pp vs 2023</div>
