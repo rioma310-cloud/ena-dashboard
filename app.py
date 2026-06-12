@@ -472,7 +472,7 @@ with tabs[0]:
         fig = apply_premium_layout(fig, "Evolución nacional de productores agropecuarios",
                                    "Volumen de Productores", "Ciclo Estadístico")
         fig.update_yaxes(tickformat=',.2s')
-        st.plotly_chart(fig, use_container_width=True, key="fig_1")
+        st.plotly_chart(fig, use_container_width=True, key="f4e3dc33")
 
     with c2:
         df_s = to_df(D['sexo'])
@@ -483,18 +483,18 @@ with tabs[0]:
         fig2 = apply_premium_layout(fig2, "Distribución de productores por sexo (%)",
                                     "Porcentaje", "Año", is_bar=True)
         fig2.update_layout(yaxis_range=[0,85])
-        st.plotly_chart(fig2, use_container_width=True, key="fig_2")
+        st.plotly_chart(fig2, use_container_width=True, key="f3224c09")
 
     st.markdown("<div class='section-header-panel'>Estructura Etaria Nacional</div>", unsafe_allow_html=True)
     c3,c4 = st.columns(2)
     with c3:
         st.plotly_chart(safe_line(D['edad3'],
             "Evolución de grupos etarios del productor (15-34/35-49/50-64/65+)",
-            "Porcentaje","Año"), use_container_width=True, key="pc_28")
+            "Porcentaje","Año"), use_container_width=True, key="9fb6077e")
     with c4:
         st.plotly_chart(delta_bar(D['edad3'],
             f"Desviación interanual en estructura etaria (pp 2023→{yr_max})"),
-            use_container_width=True, key="pc_29")
+            use_container_width=True, key="d40edd9d")
 
 # ══════════════════════════════════════════════
 # TAB 1 — PERFIL DEL PRODUCTOR
@@ -511,28 +511,28 @@ with tabs[1]:
         muj3 = {k.replace('Mujer · ',''):v  for k,v in D['edad_sexo3'].items() if 'Mujer' in k}
         with c1:
             st.plotly_chart(safe_line(hom3,"Grupos de edad · Hombres (%)","Porcentaje","Año"),
-                            use_container_width=True, key="pc_30")
+                            use_container_width=True, key="b301d57d")
         with c2:
             st.plotly_chart(safe_line(muj3,"Grupos de edad · Mujeres (%)","Porcentaje","Año"),
-                            use_container_width=True, key="pc_31")
+                            use_container_width=True, key="c92c8d4f")
     with sub2:
         c3,c4 = st.columns(2)
         hom4 = {k.replace('Hombre · ',''):v for k,v in D['edad_sexo4'].items() if 'Hombre' in k}
         muj4 = {k.replace('Mujer · ',''):v  for k,v in D['edad_sexo4'].items() if 'Mujer' in k}
         with c3:
             st.plotly_chart(safe_line(hom4,"Grupos de edad · Hombres (15-29/30-44/45-59/60+)","Porcentaje","Año"),
-                            use_container_width=True, key="pc_32")
+                            use_container_width=True, key="7a3d2a54")
         with c4:
             st.plotly_chart(safe_line(muj4,"Grupos de edad · Mujeres (15-29/30-44/45-59/60+)","Porcentaje","Año"),
-                            use_container_width=True, key="pc_33")
+                            use_container_width=True, key="3135ac11")
     with sub3:
         c5,c6 = st.columns(2)
         with c5:
             st.plotly_chart(safe_line(D['edad2'],"Grupos etarios alternativos (14-39/40-59/60+)","Porcentaje","Año"),
-                            use_container_width=True, key="pc_34")
+                            use_container_width=True, key="d6fa425f")
         with c6:
             st.plotly_chart(delta_bar(D['edad2'],f"Desviación etaria alternativa (pp 2023→{yr_max})"),
-                            use_container_width=True, key="pc_35")
+                            use_container_width=True, key="f6116b67")
 
 # ══════════════════════════════════════════════
 # TAB 2 — EDUCACIÓN E IDENTIDAD
@@ -550,10 +550,10 @@ with tabs[2]:
         fig_ed = apply_premium_layout(fig_ed, "Nivel educativo alcanzado por el productor/a (%)",
                                       "Nivel educativo","",is_bar=True)
         fig_ed.update_layout(yaxis=dict(autorange='reversed'))
-        st.plotly_chart(fig_ed, use_container_width=True, key="fig_3")
+        st.plotly_chart(fig_ed, use_container_width=True, key="211afe56")
     with c2:
         st.plotly_chart(delta_bar(D['educ'],f"Desviación en nivel educativo (pp 2023→{yr_max})"),
-                        use_container_width=True, key="pc_36")
+                        use_container_width=True, key="528fdee1")
 
     st.markdown("<div class='section-header-panel'>Nivel Educativo por Sexo</div>", unsafe_allow_html=True)
     c3,c4 = st.columns(2)
@@ -561,10 +561,10 @@ with tabs[2]:
     educ_m = {k.replace('Mujer · ',''):v  for k,v in D['educ_sexo'].items() if 'Mujer' in k}
     with c3:
         st.plotly_chart(safe_line(educ_h,"Nivel educativo · Hombres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_37")
+                        use_container_width=True, key="bcf2c3e7")
     with c4:
         st.plotly_chart(safe_line(educ_m,"Nivel educativo · Mujeres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_38")
+                        use_container_width=True, key="720e0768")
 
     st.markdown("<div class='section-header-panel'>Autoidentificación Étnica e Idioma Materno</div>", unsafe_allow_html=True)
     c5,c6 = st.columns(2)
@@ -572,20 +572,20 @@ with tabs[2]:
     etn_m = {k.replace('Mujer · ',''):v  for k,v in D['etnicidad'].items() if 'Mujer' in k}
     with c5:
         st.plotly_chart(safe_line(etn_h,"Autoidentificación étnica · Hombres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_39")
+                        use_container_width=True, key="4b29d6d9")
     with c6:
         st.plotly_chart(safe_line(etn_m,"Autoidentificación étnica · Mujeres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_40")
+                        use_container_width=True, key="efdca321")
 
     c7,c8 = st.columns(2)
     idi_h = {k.replace('Hombre · ',''):v for k,v in D['idioma'].items() if 'Hombre' in k}
     idi_m = {k.replace('Mujer · ',''):v  for k,v in D['idioma'].items() if 'Mujer' in k}
     with c7:
         st.plotly_chart(safe_line(idi_h,"Idioma materno · Hombres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_41")
+                        use_container_width=True, key="0f0a763c")
     with c8:
         st.plotly_chart(safe_line(idi_m,"Idioma materno · Mujeres (%)","Porcentaje","Año"),
-                        use_container_width=True, key="pc_42")
+                        use_container_width=True, key="eb9ffd34")
 
 # ══════════════════════════════════════════════
 # TAB 3 — SECTOR PECUARIO
@@ -609,10 +609,10 @@ with tabs[3]:
                                    labels={'cabezas':'Cabezas','anio':'Año','categoria':'Especie'})
                     fig_e = apply_premium_layout(fig_e,f"N° de cabezas por especie · {lbl}",
                                                  "Cabezas","Año",is_bar=True)
-                    st.plotly_chart(fig_e,use_container_width=True, key="fig_4")
+                    st.plotly_chart(fig_e,use_container_width=True, key="bac2b206")
             with c2:
                 st.plotly_chart(safe_line(D[esp_k],f"Tendencia de cabezas por especie · {lbl}",
-                                          "Cabezas","Año"),use_container_width=True, key="pc_43")
+                                          "Cabezas","Año"),use_container_width=True, key="908b6d0a")
 
             st.markdown(f"<div class='section-header-panel'>Productores Pecuarios · {lbl}</div>", unsafe_allow_html=True)
             c3,c4 = st.columns(2)
@@ -626,7 +626,7 @@ with tabs[3]:
                                    labels={'productores':'Productores','categoria':'Especie','anio':'Año'})
                     fig_p = apply_premium_layout(fig_p,f"Productores pecuarios por especie · {lbl}",
                                                  "Productores","Especie",is_bar=True)
-                    st.plotly_chart(fig_p,use_container_width=True, key="fig_5")
+                    st.plotly_chart(fig_p,use_container_width=True, key="54af2379")
             with c4:
                 rows_v = []
                 for esp,yv in D[prod_k].items():
@@ -643,7 +643,7 @@ with tabs[3]:
                                           textposition='outside'))
                     fv = apply_premium_layout(fv,f"Variación % productores por especie · {lbl}",
                                               "Variación %","")
-                    st.plotly_chart(fv,use_container_width=True, key="fig_6")
+                    st.plotly_chart(fv,use_container_width=True, key="68aebdc8")
 
 # ══════════════════════════════════════════════
 # TAB 4 — CAPACIDAD DE SUPERFICIE
@@ -655,16 +655,16 @@ with tabs[4]:
     noagri = {k:v for k,v in D['sup_abs'].items() if k not in agri}
     with c1:
         st.plotly_chart(safe_line(agri,"Evolución de superficies agrícolas y sus usos (M ha)",
-                                  "Millones de Hectáreas","Año"),use_container_width=True, key="pc_44")
+                                  "Millones de Hectáreas","Año"),use_container_width=True, key="1a1635bf")
     with c2:
         st.plotly_chart(safe_line(noagri,"Evolución de coberturas y tierras no agrícolas (M ha)",
-                                  "Millones de Hectáreas","Año"),use_container_width=True, key="pc_45")
+                                  "Millones de Hectáreas","Año"),use_container_width=True, key="226965b6")
 
     st.markdown("<div class='section-header-panel'>Proporciones Relativas de Uso de Suelo</div>", unsafe_allow_html=True)
     c3,c4 = st.columns(2)
     with c3:
         st.plotly_chart(safe_line(D['usos_pct'],"Estructura porcentual del uso de la tierra (%)",
-                                  "Porcentaje","Año"),use_container_width=True, key="pc_46")
+                                  "Porcentaje","Año"),use_container_width=True, key="9e0e899d")
     with c4:
         avail_s = sorted(set(yr for v in D['sup_abs'].values() for yr in v))
         if len(avail_s)>=2:
@@ -679,7 +679,7 @@ with tabs[4]:
                                    textposition='outside'))
             fig_w=apply_premium_layout(fig_w,f"Desviación neta superficie (M ha, {ya_s}→{yb_s})",
                                        "Variación Neta M ha","Tipología")
-            st.plotly_chart(fig_w,use_container_width=True, key="fig_7")
+            st.plotly_chart(fig_w,use_container_width=True, key="0db38493")
 
 # ══════════════════════════════════════════════
 # TAB 5 — INFRAESTRUCTURA UA
@@ -691,21 +691,21 @@ with tabs[5]:
 
     with sub_ua1:
         c1,c2 = st.columns(2)
-        with c1: st.plotly_chart(safe_bar(D['tam_ua2'],"Distribución de UA por estrato de tamaño · 4 rangos (%)",stack=True),use_container_width=True, key="pc_20")
-        with c2: st.plotly_chart(safe_line(D['tam_ua2'],"Evolución temporal por estratos de UA · 4 rangos","Porcentaje","Año"),use_container_width=True, key="pc_21")
+        with c1: st.plotly_chart(safe_bar(D['tam_ua2'],"Distribución de UA por estrato de tamaño · 4 rangos (%)",stack=True),use_container_width=True, key="8f246fa3")
+        with c2: st.plotly_chart(safe_line(D['tam_ua2'],"Evolución temporal por estratos de UA · 4 rangos","Porcentaje","Año"),use_container_width=True, key="e34d2db8")
     with sub_ua2:
         c3,c4 = st.columns(2)
-        with c3: st.plotly_chart(safe_bar(D['tam_ua1'],"Distribución de UA por estrato de tamaño · 6 rangos finos (%)",stack=True),use_container_width=True, key="pc_22")
-        with c4: st.plotly_chart(delta_bar(D['tam_ua1'],f"Desviación interanual · 6 rangos (pp 2023→{yr_max})"),use_container_width=True, key="pc_23")
+        with c3: st.plotly_chart(safe_bar(D['tam_ua1'],"Distribución de UA por estrato de tamaño · 6 rangos finos (%)",stack=True),use_container_width=True, key="994ec2ef")
+        with c4: st.plotly_chart(delta_bar(D['tam_ua1'],f"Desviación interanual · 6 rangos (pp 2023→{yr_max})"),use_container_width=True, key="294bb8df")
     with sub_ua3:
         c5,c6 = st.columns(2)
-        with c5: st.plotly_chart(safe_line(D['tam_ua3'],"Distribución de micro UA (<2 ha)","Porcentaje","Año"),use_container_width=True, key="pc_24")
-        with c6: st.plotly_chart(delta_bar(D['tam_ua3'],f"Desviación micro UA (pp 2023→{yr_max})"),use_container_width=True, key="pc_25")
+        with c5: st.plotly_chart(safe_line(D['tam_ua3'],"Distribución de micro UA (<2 ha)","Porcentaje","Año"),use_container_width=True, key="69a738e8")
+        with c6: st.plotly_chart(delta_bar(D['tam_ua3'],f"Desviación micro UA (pp 2023→{yr_max})"),use_container_width=True, key="d122ba26")
 
     st.markdown("<div class='section-header-panel'>Dinámica de la Concentración y Tenencia de Tierras</div>", unsafe_allow_html=True)
     c7,c8 = st.columns(2)
-    with c7: st.plotly_chart(safe_bar(D['num_parc'],"Distribución de UA según número de parcelas internas (%)",stack=True),use_container_width=True, key="pc_26")
-    with c8: st.plotly_chart(safe_line(D['num_parc'],"Evolución de la fragmentación parcelaria","Porcentaje","Año"),use_container_width=True, key="pc_27")
+    with c7: st.plotly_chart(safe_bar(D['num_parc'],"Distribución de UA según número de parcelas internas (%)",stack=True),use_container_width=True, key="17ccb40c")
+    with c8: st.plotly_chart(safe_line(D['num_parc'],"Evolución de la fragmentación parcelaria","Porcentaje","Año"),use_container_width=True, key="c125a68d")
 
 # ══════════════════════════════════════════════
 # TAB 6 — AUDITORÍA DE TABLAS
