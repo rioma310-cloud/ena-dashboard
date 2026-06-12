@@ -213,7 +213,7 @@ def df_long(d, val='valor'):
     return pd.DataFrame([{'categoria':k,'anio':yr, val:v}
                          for k,yv in d.items() for yr,v in yv.items()])
 
-def LY(d):  # layout base plotly
+def LY():  # layout base plotly
     return dict(plot_bgcolor='white', paper_bgcolor='white',
                 font_family="Inter,sans-serif", font_color="#334155",
                 margin=dict(t=38,b=24,l=8,r=8),
@@ -279,11 +279,8 @@ def line_multi(d, title, val_label='%'):
     return fig
 
 def bar_horiz_delta(d, title, yr_a=2023, yr_b=None):
-    yr_b = yr_b or max(k for k in YEARS if any(yr_b_ := k, True) and
-                       any(yr_b_ in v for v in d.values())) 
-    # Simplified: use last available year
     avail = sorted(set(yr for v in d.values() for yr in v))
-    yr_b = avail[-1]
+    yr_b = avail[-1] if yr_b is None else yr_b
     rows = []
     for cat, yv in d.items():
         if yr_a in yv and yr_b in yv:
@@ -427,9 +424,11 @@ with tabs[0]:
                 marker=dict(size=8,symbol='diamond',color=C['naranja']),
                 text=['',f"{y_proj/1e6:.3f}M*"], textposition='top center',
                 textfont=dict(size=10,color=C['naranja']), name=f"Proyección {max(yrs_ok)+1}"))
+        _ly = LY()
+        _ly['yaxis'] = dict(title='Productores', tickformat=',.0f')
         fig.update_layout(
             title='Total de productores/as agropecuarios/as · Serie 2023–'+str(yr_max),
-            yaxis=dict(title='Productores', tickformat=',.0f'), **LY())
+            **_ly)
         st.plotly_chart(fig, use_container_width=True)
 
     with c2:
