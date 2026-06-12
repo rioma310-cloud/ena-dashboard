@@ -51,16 +51,22 @@ check_password()
 
 # ── Paleta ──────────────────────────────────────────────────────────────────
 C = {
+    "verde": "#0F766E",
+    "azul": "#1E3A8A",
+    "naranja": "#EA580C",
+    "rojo": "#DC2626",
+    "morado": "#7C3AED",
+    "cyan": "#0891B2",
+    "gris": "#64748B",
+
     "primary": "#1E3A8A",
     "secondary": "#0F766E",
     "success": "#16A34A",
     "warning": "#EA580C",
     "danger": "#DC2626",
     "purple": "#7C3AED",
-    "cyan": "#0891B2",
     "dark": "#0F172A",
-    "gray": "#64748B",
-    "light": "#F8FAFC",
+    "light": "#F8FAFC"
 }
 
 PAL8 = [
