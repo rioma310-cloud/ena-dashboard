@@ -465,24 +465,29 @@ def slope_chart(d, title, unidad="%"):
 def heatmap_variaciones(D_dict, yr_max):
     """Heatmap panorámico: filas=indicadores, columnas=años, color=valor relativo.
     Detecta de un vistazo dónde están los cambios en TODO el dashboard."""
-    rows, labels = [], []
+    rows = []
 
     bloques = [
-        ('sexo', '👤'), ('edad3', '🎂'), ('educ', '🎓'),
-        ('tam_ua2', '🏡'), ('num_parc', '🧩'), ('usos_pct', '🌱'),
+        ('sexo', 'Sexo'), ('edad3', 'Edad'), ('educ', 'Educación'),
+        ('tam_ua2', 'Tamaño UA'), ('num_parc', 'Parcelas'), ('usos_pct', 'Uso tierra'),
     ]
-    for key, emoji in bloques:
+    # Detectar qué años tienen datos en al menos un indicador
+    years_with_data = set()
+    for key, _ in bloques:
+        for yv in D_dict[key].values():
+            years_with_data.update(yv.keys())
+    cols_years = sorted(years_with_data)
+
+    for key, grupo in bloques:
         for cat, yv in D_dict[key].items():
             avail = sorted(yv.keys())
             if len(avail) < 2: continue
             ya, yb = avail[0], avail[-1]
             delta = yv[yb] - yv[ya]
-            vals_by_year = []
-            for y in [2023, 2024, 2025, 2026]:
-                vals_by_year.append(yv.get(y, None))
-            rows.append((f"{emoji} {cat[:28]}", vals_by_year, delta))
+            vals_by_year = [yv.get(y, None) for y in cols_years]
+            label = f"{grupo} | {cat[:26]}"
+            rows.append((label, vals_by_year, delta))
 
-    # Ordenar por delta descendente
     rows.sort(key=lambda x: x[2], reverse=True)
 
     z, y_labels, text_vals = [], [], []
@@ -491,29 +496,35 @@ def heatmap_variaciones(D_dict, yr_max):
         normalized = [(v - base) if v is not None else None for v in vals]
         z.append(normalized)
         y_labels.append(label)
-        text_vals.append([f"{v:.1f}" if v is not None else "" for v in vals])
+        text_vals.append([f"{v:.1f}" if v is not None else "·" for v in vals])
 
     fig = go.Figure(go.Heatmap(
-        z=z, x=['2023','2024','2025','2026'], y=y_labels,
+        z=z,
+        x=[str(y) for y in cols_years],
+        y=y_labels,
         text=text_vals, texttemplate="%{text}",
-        textfont=dict(size=10),
-        colorscale=[[0,'#DC2626'],[0.4,'#FEF3C7'],[0.5,'#F8FAFC'],[0.6,'#FEF3C7'],[1,'#16A34A']],
+        textfont=dict(size=10, color="#0F172A"),
+        colorscale=[[0,'#DC2626'],[0.35,'#FCA5A5'],[0.48,'#FEF9C3'],
+                    [0.52,'#FEF9C3'],[0.65,'#86EFAC'],[1,'#16A34A']],
         zmid=0, showscale=True,
-        colorbar=dict(title=dict(text="Δ vs<br>inicio", font=dict(size=10)),
-                      tickfont=dict(size=9), thickness=12, len=0.7),
-        hovertemplate="<b>%{y}</b><br>%{x}: %{text}%<extra></extra>",
-        xgap=3, ygap=3
+        hoverongaps=False,
+        colorbar=dict(title=dict(text="Δ vs<br>2023", font=dict(size=10)),
+                      tickfont=dict(size=9), thickness=12, len=0.6),
+        hovertemplate="<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
+        xgap=4, ygap=4
     ))
 
     fig.update_layout(
-        title=dict(text="<b>Mapa de calor · Evolución de todos los indicadores (% / valor)</b>",
-                   font=dict(size=15, color="#0F172A"), x=0.01, y=0.98, yanchor="top"),
         plot_bgcolor='white', paper_bgcolor='white',
         font=dict(family="Inter,sans-serif", size=10, color="#475569"),
-        margin=dict(t=50, b=30, l=10, r=10),
-        height=max(420, len(y_labels) * 26 + 100),
-        xaxis=dict(side='top', tickfont=dict(size=12, color="#0F172A")),
-        yaxis=dict(tickfont=dict(size=10), autorange='reversed')
+        margin=dict(t=40, b=20, l=10, r=10),
+        height=max(450, len(y_labels) * 27 + 90),
+        xaxis=dict(side='top', type='category',
+                   tickfont=dict(size=13, color="#0F172A"),
+                   fixedrange=True),
+        yaxis=dict(tickfont=dict(size=10, color="#334155"),
+                   autorange='reversed', automargin=True,
+                   fixedrange=True)
     )
     return fig
 
