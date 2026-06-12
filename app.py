@@ -277,16 +277,62 @@ def delta_bar(d, title, yr_a=2023):
     if not d: return go.Figure()
     avail = sorted(set(yr for v in d.values() for yr in v))
     yr_b = avail[-1]
-    rows = [{'cat':k,'delta':round(v[yr_b]-v[yr_a],2)}
+    rows = [{'cat':k,'delta':round(v[yr_b]-v[yr_a],2),
+             'v_inicio':v[yr_a],'v_fin':v[yr_b]}
             for k,v in d.items() if yr_a in v and yr_b in v]
     if not rows: return go.Figure()
     df = pd.DataFrame(rows).sort_values('delta')
-    cols = [C['success'] if v>=0 else C['danger'] for v in df['delta']]
-    fig = go.Figure(go.Bar(x=df['delta'], y=df['cat'], orientation='h',
-                           marker_color=cols,
-                           text=[f"{v:+.1f}pp" for v in df['delta']],
-                           textposition='outside'))
-    return apply_premium_layout(fig, title, "Puntos porcentuales", "")
+    
+    # Colores con gradiente de intensidad según magnitud
+    max_abs = max(abs(df['delta'].max()), abs(df['delta'].min()), 0.01)
+    colors = []
+    for v in df['delta']:
+        intensity = min(abs(v)/max_abs, 1.0)
+        if v >= 0:
+            r = int(22 + (34-22)*(1-intensity))
+            g = int(163 + (163)*intensity)
+            b = int(74 + (74)*(1-intensity))
+            colors.append(f'rgb({r},{g},{b})')
+        else:
+            r = int(220 - (220-180)*intensity)
+            g = int(38 * (1-intensity*0.7))
+            b = int(38 * (1-intensity*0.7))
+            colors.append(f'rgb({r},{g},{b})')
+    
+    fig = go.Figure()
+    
+    # Barras con ancho proporcional a cambio
+    fig.add_trace(go.Bar(
+        x=df['delta'], y=df['cat'], orientation='h',
+        marker=dict(
+            color=colors,
+            line=dict(color='white', width=1.5),
+            cornerradius=4
+        ),
+        text=[f"<b>{v:+.1f}pp</b><br><span style='font-size:9px'>{r:.1f}%→{f:.1f}%</span>"
+              for v,r,f in zip(df['delta'],df['v_inicio'],df['v_fin'])],
+        textposition='outside',
+        hovertemplate="<b>%{y}</b><br>Variación: %{x:+.2f} pp<extra></extra>",
+        cliponaxis=False
+    ))
+    
+    # Línea vertical en cero destacada
+    fig.add_vline(x=0, line_width=2, line_color="#0F172A", opacity=0.4)
+    
+    # Anotación de alerta si hay cambio brusco
+    max_delta = df['delta'].abs().max()
+    if max_delta > 3:
+        fig.add_annotation(
+            x=0.99, y=0.02, xref="paper", yref="paper",
+            text=f"⚠️ Cambio máximo: {max_delta:.1f}pp",
+            showarrow=False, font=dict(size=10, color=C['warning']),
+            bgcolor="#FFF7ED", bordercolor=C['warning'],
+            borderwidth=1, borderpad=4
+        )
+    
+    fig = apply_premium_layout(fig, title, "Puntos porcentuales", "")
+    fig.update_xaxes(zeroline=False)
+    return fig
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -426,7 +472,7 @@ with tabs[0]:
         fig = apply_premium_layout(fig, "Evolución nacional de productores agropecuarios",
                                    "Volumen de Productores", "Ciclo Estadístico")
         fig.update_yaxes(tickformat=',.2s')
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="fig_1")
 
     with c2:
         df_s = to_df(D['sexo'])
@@ -437,7 +483,7 @@ with tabs[0]:
         fig2 = apply_premium_layout(fig2, "Distribución de productores por sexo (%)",
                                     "Porcentaje", "Año", is_bar=True)
         fig2.update_layout(yaxis_range=[0,85])
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True, key="fig_2")
 
     st.markdown("<div class='section-header-panel'>Estructura Etaria Nacional</div>", unsafe_allow_html=True)
     c3,c4 = st.columns(2)
@@ -504,7 +550,7 @@ with tabs[2]:
         fig_ed = apply_premium_layout(fig_ed, "Nivel educativo alcanzado por el productor/a (%)",
                                       "Nivel educativo","",is_bar=True)
         fig_ed.update_layout(yaxis=dict(autorange='reversed'))
-        st.plotly_chart(fig_ed, use_container_width=True)
+        st.plotly_chart(fig_ed, use_container_width=True, key="fig_3")
     with c2:
         st.plotly_chart(delta_bar(D['educ'],f"Desviación en nivel educativo (pp 2023→{yr_max})"),
                         use_container_width=True)
@@ -563,7 +609,7 @@ with tabs[3]:
                                    labels={'cabezas':'Cabezas','anio':'Año','categoria':'Especie'})
                     fig_e = apply_premium_layout(fig_e,f"N° de cabezas por especie · {lbl}",
                                                  "Cabezas","Año",is_bar=True)
-                    st.plotly_chart(fig_e,use_container_width=True)
+                    st.plotly_chart(fig_e,use_container_width=True, key="fig_4")
             with c2:
                 st.plotly_chart(safe_line(D[esp_k],f"Tendencia de cabezas por especie · {lbl}",
                                           "Cabezas","Año"),use_container_width=True)
@@ -580,7 +626,7 @@ with tabs[3]:
                                    labels={'productores':'Productores','categoria':'Especie','anio':'Año'})
                     fig_p = apply_premium_layout(fig_p,f"Productores pecuarios por especie · {lbl}",
                                                  "Productores","Especie",is_bar=True)
-                    st.plotly_chart(fig_p,use_container_width=True)
+                    st.plotly_chart(fig_p,use_container_width=True, key="fig_5")
             with c4:
                 rows_v = []
                 for esp,yv in D[prod_k].items():
@@ -597,7 +643,7 @@ with tabs[3]:
                                           textposition='outside'))
                     fv = apply_premium_layout(fv,f"Variación % productores por especie · {lbl}",
                                               "Variación %","")
-                    st.plotly_chart(fv,use_container_width=True)
+                    st.plotly_chart(fv,use_container_width=True, key="fig_6")
 
 # ══════════════════════════════════════════════
 # TAB 4 — CAPACIDAD DE SUPERFICIE
@@ -633,7 +679,7 @@ with tabs[4]:
                                    textposition='outside'))
             fig_w=apply_premium_layout(fig_w,f"Desviación neta superficie (M ha, {ya_s}→{yb_s})",
                                        "Variación Neta M ha","Tipología")
-            st.plotly_chart(fig_w,use_container_width=True)
+            st.plotly_chart(fig_w,use_container_width=True, key="fig_7")
 
 # ══════════════════════════════════════════════
 # TAB 5 — INFRAESTRUCTURA UA
