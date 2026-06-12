@@ -315,46 +315,65 @@ def to_df(d, val='valor'):
     return pd.DataFrame(rows)
 
 # ── Generador Estricto de Plantilla Gráfica (Estilo Power BI) ────────────────
+# ── Generador Estricto de Plantilla Gráfica (Estilo Power BI Premium) ────────
 def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
     fig.update_layout(
         title=dict(
             text=f"<b>{title_text}</b>",
-            font=dict(size=15, color="#0F172A"),
+            font=dict(size=16, color="#0F172A"),
             x=0.01,
-            y=0.95
+            y=0.94,            # Ajuste de posición vertical del título
+            yanchor="top"
         ),
         plot_bgcolor='white',
         paper_bgcolor='white',
-        font=dict(family="Inter, sans-serif", size=12, color="#334155"),
-        margin=dict(t=55, b=40, l=15, r=15),
-        height=380,
+        font=dict(family="Inter, sans-serif", size=11, color="#475569"),
+        margin=dict(t=95, b=50, l=45, r=20), # Se incrementa sustancialmente el margen superior (t) e izquierdo (l)
+        height=420,             # Aumentamos ligeramente la altura para dar holgura
         showlegend=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
-            xanchor="left",
-            x=0.01,
-            title_text=""
+            y=1.01,            # Posición intermedia perfecta entre el gráfico y el título
+            xanchor="right",
+            x=0.99,            # Alineación premium hacia la derecha
+            title_text="",
+            font=dict(size=10, color="#475569"),
+            itemwidth=40       # Controla el ancho por ítem para evitar colisiones internas
         ),
         hovermode="x unified"
     )
+    
     fig.update_xaxes(
-        title_text=x_title,
+        title_text=f"<b>{x_title}</b>" if x_title else "",
+        title_font=dict(size=11, color="#1E3A8A"),
         showgrid=False,
         showline=True,
         linecolor="#CBD5E1",
-        tickfont=dict(size=11)
+        tickfont=dict(size=11, color="#475569"),
+        linewidth=1
     )
+    
     fig.update_yaxes(
-        title_text=y_title,
+        title_text=f"<b>{y_title}</b>" if y_title else "",
+        title_font=dict(size=11, color="#1E3A8A"),
         showgrid=True,
-        gridcolor="#E2E8F0",
-        showline=False,  # Corrección: Desactiva la línea lateral limpiamente en vez de forzar color transparente
-        tickfont=dict(size=11)
+        gridcolor="#F1F5F9",   # Grilla sutil ejecutiva
+        showline=False,
+        tickfont=dict(size=11, color="#475569")
     )
+    
     if is_bar:
-        fig.update_layout(bargap=0.25, bargroupgap=0.05)
+        fig.update_layout(
+            bargap=0.22, 
+            bargroupgap=0.04
+        )
+        # Fuerza a las etiquetas de texto de las barras a mantenerse legibles
+        fig.update_traces(
+            textposition='outside', 
+            cliponaxis=False
+        )
+        
     return fig
 
 # ── Panel Lateral Corporativo ────────────────────────────────────────────────
