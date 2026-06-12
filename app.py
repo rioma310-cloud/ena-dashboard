@@ -339,7 +339,7 @@ with st.spinner("Procesando Excel..."):
     D = leer(uploaded.read())
 
 # ── Banner ───────────────────────────────────────────────────────────────────
-st.markdown(f"""
+st.markdown("""
 <div class="main-banner">
 
 <div class="main-title">
@@ -347,9 +347,7 @@ st.markdown(f"""
 </div>
 
 <div class="main-sub">
-Perfil del Productor Agropecuario Peruano ·
-Encuesta Nacional Agropecuaria ·
-Actualizado hasta {yr_max}
+Perfil del Productor Agropecuario Peruano
 </div>
 
 </div>
