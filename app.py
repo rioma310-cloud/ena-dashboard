@@ -224,6 +224,11 @@ def to_df(d, val='valor'):
     return pd.DataFrame(rows) if rows else pd.DataFrame(columns=['categoria','anio',val])
 
 def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
+    # Si la figura está vacía, mostrar fondo blanco con mensaje
+    if not fig.data:
+        fig.add_annotation(text="Sin datos disponibles para este indicador",
+                           xref="paper", yref="paper", x=0.5, y=0.5,
+                           showarrow=False, font=dict(size=13, color="#94A3B8"))
     fig.update_layout(
         title=dict(text=f"<b>{title_text}</b>",
                    font=dict(size=15,color="#0F172A"), x=0.01, y=0.94, yanchor="top"),
@@ -238,6 +243,9 @@ def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
                      title_font=dict(size=11,color="#1E3A8A"),
                      showgrid=False, showline=True, linecolor="#CBD5E1",
                      tickfont=dict(size=11,color="#475569"), linewidth=1)
+    # Forzar años como categorías discretas (evita 2023.5, 2024.5)
+    if x_title and ("o" in x_title.lower() or "ciclo" in x_title.lower()):
+        fig.update_xaxes(type='category')
     fig.update_yaxes(title_text=f"<b>{y_title}</b>" if y_title else "",
                      title_font=dict(size=11,color="#1E3A8A"),
                      showgrid=True, gridcolor="#F1F5F9",
@@ -248,9 +256,12 @@ def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
     return fig
 
 def safe_line(d, title, y_label="Porcentaje", x_label="Año"):
-    if not d: return go.Figure()
+    if not d:
+        return apply_premium_layout(go.Figure(), title, y_label, x_label)
     df = to_df(d)
-    if df.empty or 'categoria' not in df.columns: return go.Figure()
+    if df.empty or 'categoria' not in df.columns:
+        return apply_premium_layout(go.Figure(), title, y_label, x_label)
+    df['anio'] = df['anio'].astype(str)
     cats = df['categoria'].unique().tolist()
     cmap = {c: PAL8[i%len(PAL8)] for i,c in enumerate(cats)}
     fig = px.line(df, x='anio', y='valor', color='categoria',
@@ -260,9 +271,12 @@ def safe_line(d, title, y_label="Porcentaje", x_label="Año"):
     return apply_premium_layout(fig, title, y_label, x_label)
 
 def safe_bar(d, title, y_label="%", stack=False):
-    if not d: return go.Figure()
+    if not d:
+        return apply_premium_layout(go.Figure(), title, y_label)
     df = to_df(d)
-    if df.empty: return go.Figure()
+    if df.empty:
+        return apply_premium_layout(go.Figure(), title, y_label)
+    df['anio'] = df['anio'].astype(str)
     cats = df['categoria'].unique().tolist()
     cmap = {c: PAL8[i%len(PAL8)] for i,c in enumerate(cats)}
     mode = 'stack' if stack else 'group'
@@ -476,6 +490,7 @@ with tabs[0]:
 
     with c2:
         df_s = to_df(D['sexo'])
+        df_s['anio'] = df_s['anio'].astype(str)
         cmap_s = {'Hombre':C['primary'],'Mujer':C['danger']}
         fig2 = px.bar(df_s, x='anio', y='valor', color='categoria', barmode='group',
                       color_discrete_map=cmap_s, text_auto='.1f',
@@ -542,10 +557,11 @@ with tabs[2]:
     c1,c2 = st.columns(2)
     with c1:
         df_ed = to_df(D['educ'])
+        df_ed['anio'] = df_ed['anio'].astype(str)
         cmap_ed = {c:PAL8[i%len(PAL8)] for i,c in enumerate(df_ed['categoria'].unique())}
         fig_ed = px.bar(df_ed, x='valor', y='categoria', color='anio', barmode='group',
                         orientation='h', text_auto='.1f',
-                        color_discrete_map={2023:PAL8[0],2024:PAL8[1],2025:PAL8[2],2026:PAL8[3]},
+                        color_discrete_map={'2023':PAL8[0],'2024':PAL8[1],'2025':PAL8[2],'2026':PAL8[3]},
                         labels={'valor':'%','categoria':'Nivel educativo','anio':'Año'})
         fig_ed = apply_premium_layout(fig_ed, "Nivel educativo alcanzado por el productor/a (%)",
                                       "Nivel educativo","",is_bar=True)
@@ -603,6 +619,7 @@ with tabs[3]:
             with c1:
                 df_e = to_df(D[esp_k],'cabezas')
                 if not df_e.empty:
+                    df_e['anio'] = df_e['anio'].astype(str)
                     cmap_e={c:PAL8[i%len(PAL8)] for i,c in enumerate(df_e['categoria'].unique())}
                     fig_e = px.bar(df_e,x='anio',y='cabezas',color='categoria',barmode='group',
                                    color_discrete_map=cmap_e,text_auto='.2s',
@@ -619,9 +636,10 @@ with tabs[3]:
             with c3:
                 df_p = to_df(D[prod_k],'productores')
                 if not df_p.empty:
+                    df_p['anio'] = df_p['anio'].astype(str)
                     cmap_p={c:PAL8[i%len(PAL8)] for i,c in enumerate(df_p['categoria'].unique())}
                     fig_p = px.bar(df_p,x='categoria',y='productores',color='anio',barmode='group',
-                                   color_discrete_map={2023:PAL8[0],2024:PAL8[1],2025:PAL8[2],2026:PAL8[3]},
+                                   color_discrete_map={'2023':PAL8[0],'2024':PAL8[1],'2025':PAL8[2],'2026':PAL8[3]},
                                    text_auto='.2s',
                                    labels={'productores':'Productores','categoria':'Especie','anio':'Año'})
                     fig_p = apply_premium_layout(fig_p,f"Productores pecuarios por especie · {lbl}",
