@@ -412,6 +412,193 @@ def render_semaforo(items, yr_a, yr_b, unidad="%", umbral_alto=2.0, umbral_medio
     return html
 
 
+
+
+# ─── GRÁFICOS AVANZADOS DE DETECCIÓN DE CAMBIOS ──────────────────────────────
+
+def slope_chart(d, title, unidad="%"):
+    """Slope chart: 2 puntos (año inicio/fin) conectados por líneas.
+    Las pendientes pronunciadas revelan cambios bruscos al instante."""
+    if not d: return go.Figure()
+    avail = sorted(set(yr for v in d.values() for yr in v))
+    if len(avail) < 2: return go.Figure()
+    ya, yb = avail[0], avail[-1]
+
+    fig = go.Figure()
+    items = [(cat, yv[ya], yv[yb]) for cat, yv in d.items() if ya in yv and yb in yv]
+    items.sort(key=lambda x: x[2]-x[1], reverse=True)
+
+    for i, (cat, v0, vf) in enumerate(items):
+        delta = vf - v0
+        if delta > 1.0:    color, w = "#16A34A", 3.5
+        elif delta < -1.0: color, w = "#DC2626", 3.5
+        else:              color, w = "#94A3B8", 2
+
+        fig.add_trace(go.Scatter(
+            x=[str(ya), str(yb)], y=[v0, vf],
+            mode='lines+markers+text',
+            line=dict(color=color, width=w),
+            marker=dict(size=9, color=color, line=dict(color='white', width=1.5)),
+            text=[f"{v0:.1f}", f"{vf:.1f}  <b>{cat[:20]}</b> ({delta:+.1f})"],
+            textposition=["middle left", "middle right"],
+            textfont=dict(size=10, color=color),
+            showlegend=False,
+            hovertemplate=f"<b>{cat}</b><br>{ya}: {v0:.1f}{unidad}<br>{yb}: {vf:.1f}{unidad}<br>Δ: {delta:+.1f}<extra></extra>"
+        ))
+
+    fig.update_layout(
+        title=dict(text=f"<b>{title}</b>", font=dict(size=15, color="#0F172A"),
+                   x=0.01, y=0.96, yanchor="top"),
+        plot_bgcolor='white', paper_bgcolor='white',
+        font=dict(family="Inter,sans-serif", size=11, color="#475569"),
+        margin=dict(t=60, b=30, l=60, r=180), height=420,
+        xaxis=dict(showgrid=False, showline=True, linecolor="#CBD5E1",
+                   tickfont=dict(size=13, color="#0F172A"), type='category',
+                   range=[-0.25, 1.6]),
+        yaxis=dict(showgrid=True, gridcolor="#F1F5F9", showline=False,
+                   tickfont=dict(size=10, color="#94A3B8")),
+        hovermode="closest"
+    )
+    return fig
+
+
+def heatmap_variaciones(D_dict, yr_max):
+    """Heatmap panorámico: filas=indicadores, columnas=años, color=valor relativo.
+    Detecta de un vistazo dónde están los cambios en TODO el dashboard."""
+    rows, labels = [], []
+
+    bloques = [
+        ('sexo', '👤'), ('edad3', '🎂'), ('educ', '🎓'),
+        ('tam_ua2', '🏡'), ('num_parc', '🧩'), ('usos_pct', '🌱'),
+    ]
+    for key, emoji in bloques:
+        for cat, yv in D_dict[key].items():
+            avail = sorted(yv.keys())
+            if len(avail) < 2: continue
+            ya, yb = avail[0], avail[-1]
+            delta = yv[yb] - yv[ya]
+            vals_by_year = []
+            for y in [2023, 2024, 2025, 2026]:
+                vals_by_year.append(yv.get(y, None))
+            rows.append((f"{emoji} {cat[:28]}", vals_by_year, delta))
+
+    # Ordenar por delta descendente
+    rows.sort(key=lambda x: x[2], reverse=True)
+
+    z, y_labels, text_vals = [], [], []
+    for label, vals, delta in rows:
+        base = next((v for v in vals if v is not None), 0)
+        normalized = [(v - base) if v is not None else None for v in vals]
+        z.append(normalized)
+        y_labels.append(label)
+        text_vals.append([f"{v:.1f}" if v is not None else "" for v in vals])
+
+    fig = go.Figure(go.Heatmap(
+        z=z, x=['2023','2024','2025','2026'], y=y_labels,
+        text=text_vals, texttemplate="%{text}",
+        textfont=dict(size=10),
+        colorscale=[[0,'#DC2626'],[0.4,'#FEF3C7'],[0.5,'#F8FAFC'],[0.6,'#FEF3C7'],[1,'#16A34A']],
+        zmid=0, showscale=True,
+        colorbar=dict(title=dict(text="Δ vs<br>inicio", font=dict(size=10)),
+                      tickfont=dict(size=9), thickness=12, len=0.7),
+        hovertemplate="<b>%{y}</b><br>%{x}: %{text}%<extra></extra>",
+        xgap=3, ygap=3
+    ))
+
+    fig.update_layout(
+        title=dict(text="<b>Mapa de calor · Evolución de todos los indicadores (% / valor)</b>",
+                   font=dict(size=15, color="#0F172A"), x=0.01, y=0.98, yanchor="top"),
+        plot_bgcolor='white', paper_bgcolor='white',
+        font=dict(family="Inter,sans-serif", size=10, color="#475569"),
+        margin=dict(t=50, b=30, l=10, r=10),
+        height=max(420, len(y_labels) * 26 + 100),
+        xaxis=dict(side='top', tickfont=dict(size=12, color="#0F172A")),
+        yaxis=dict(tickfont=dict(size=10), autorange='reversed')
+    )
+    return fig
+
+
+def render_semaforo_spark(items_with_series, yr_a, yr_b, unidad="%",
+                          umbral_alto=2.0, umbral_medio=0.5):
+    """Semáforo con sparklines: tarjetas que incluyen mini-gráfico de tendencia SVG."""
+    html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin:10px 0;">'
+
+    for cat, serie, delta, sortkey in items_with_series:
+        if sortkey > umbral_alto:
+            color, bg, icon, txt = "#15803D", "#DCFCE7", "▲▲", "AL ALZA"
+        elif sortkey > umbral_medio:
+            color, bg, icon, txt = "#65A30D", "#ECFCCB", "▲", "LEVE ALZA"
+        elif sortkey >= -umbral_medio:
+            color, bg, icon, txt = "#A16207", "#FEF9C3", "▬", "ESTABLE"
+        elif sortkey >= -umbral_alto:
+            color, bg, icon, txt = "#EA580C", "#FFEDD5", "▼", "LEVE BAJA"
+        else:
+            color, bg, icon, txt = "#B91C1C", "#FEE2E2", "▼▼", "A LA BAJA"
+
+        # Generar sparkline SVG con la serie completa
+        vals = [v for _, v in serie]
+        if len(vals) >= 2:
+            vmin, vmax = min(vals), max(vals)
+            rng = (vmax - vmin) or 1
+            W, H = 90, 28
+            pts = []
+            for i, v in enumerate(vals):
+                px = 4 + i * (W-8) / (len(vals)-1)
+                py = H - 4 - (v - vmin) / rng * (H-8)
+                pts.append(f"{px:.1f},{py:.1f}")
+            polyline = " ".join(pts)
+            last_x, last_y = pts[-1].split(",")
+            spark = f"""<svg width="{W}" height="{H}" style="display:block;">
+              <polyline points="{polyline}" fill="none" stroke="{color}" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="{last_x}" cy="{last_y}" r="3" fill="{color}"/>
+            </svg>"""
+        else:
+            spark = ""
+
+        if unidad == "%cab":
+            val_disp = f"{delta:+.1f}%"
+            sub = f"{serie[0][1]:,.0f} → {serie[-1][1]:,.0f}"
+        else:
+            val_disp = f"{delta:+.1f}pp"
+            sub = f"{serie[0][1]:.1f}% → {serie[-1][1]:.1f}%"
+
+        html += f"""
+        <div style="background:{bg};border-radius:10px;padding:12px 14px;border-left:4px solid {color};">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:#0F172A;">{cat[:26]}</span>
+            <span style="font-size:9px;font-weight:700;color:{color};background:white;padding:2px 6px;border-radius:10px;white-space:nowrap;">{icon} {txt}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:6px;">
+            <div>
+              <div style="font-size:20px;font-weight:700;color:{color};">{val_disp}</div>
+              <div style="font-size:10px;color:#64748B;margin-top:2px;">{sub}</div>
+            </div>
+            {spark}
+          </div>
+        </div>"""
+    html += '</div>'
+    return html
+
+
+def build_spark_items(d, unidad="%"):
+    """Prepara items con serie completa para el semáforo con sparklines."""
+    if not d: return None
+    out = []
+    for cat, yv in d.items():
+        serie = sorted(yv.items())
+        if len(serie) < 2: continue
+        v0, vf = serie[0][1], serie[-1][1]
+        if unidad == "%cab":
+            delta = (vf - v0) / v0 * 100 if v0 else 0
+        else:
+            delta = vf - v0
+        out.append((cat, serie, delta, delta))
+    out.sort(key=lambda x: x[3], reverse=True)
+    if not out: return None
+    yrs = sorted(set(yr for v in d.values() for yr in v))
+    return out, yrs[0], yrs[-1]
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
@@ -543,10 +730,15 @@ with tabs[0]:
     for cat, yv in D['tam_ua2'].items():
         if '10' in cat: semaforo_data["UA grandes (≥10 ha)"] = yv
 
-    res = semaforo_tendencias(semaforo_data, "Tendencias")
+    res = build_spark_items(semaforo_data)
     if res:
-        items, ya, yb = res
-        st.markdown(render_semaforo(items, ya, yb), unsafe_allow_html=True)
+        items_s, ya, yb = res
+        st.markdown(render_semaforo_spark(items_s, ya, yb), unsafe_allow_html=True)
+
+    # ── MAPA DE CALOR PANORÁMICO ──
+    st.markdown("<div class='section-header-panel'>🔥 Mapa de Calor · Detección Panorámica de Cambios</div>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:12px;color:#64748B;margin:-8px 0 12px;'>Cada fila es un indicador, cada columna un año. El color muestra cuánto se desvía del valor inicial: <span style='color:#16A34A;font-weight:600;'>verde = subió</span> · <span style='color:#DC2626;font-weight:600;'>rojo = bajó</span>. Los focos de color intenso son los cambios más fuertes.</p>", unsafe_allow_html=True)
+    st.plotly_chart(heatmap_variaciones(D, yr_max), use_container_width=True, key="heatmap_main")
 
     st.markdown("<div class='section-header-panel'>Dinámica y Proyección del Volumen Nacional de Productores</div>", unsafe_allow_html=True)
     c1,c2 = st.columns([1.6,1])
@@ -597,9 +789,9 @@ with tabs[0]:
             "Evolución de grupos etarios del productor (15-34/35-49/50-64/65+)",
             "Porcentaje","Año"), use_container_width=True, key="9fb6077e")
     with c4:
-        st.plotly_chart(delta_bar(D['edad3'],
-            f"Desviación interanual en estructura etaria (pp 2023→{yr_max})"),
-            use_container_width=True, key="d40edd9d")
+        st.plotly_chart(slope_chart(D['edad3'],
+            f"Pendiente de cambio etario · 2023 → {yr_max}"),
+            use_container_width=True, key="slope_edad3")
 
 # ══════════════════════════════════════════════
 # TAB 1 — PERFIL DEL PRODUCTOR
@@ -658,8 +850,7 @@ with tabs[2]:
         fig_ed.update_layout(yaxis=dict(autorange='reversed'))
         st.plotly_chart(fig_ed, use_container_width=True, key="211afe56")
     with c2:
-        st.plotly_chart(delta_bar(D['educ'],f"Desviación en nivel educativo (pp 2023→{yr_max})"),
-                        use_container_width=True, key="528fdee1")
+        st.plotly_chart(slope_chart(D['educ'], f"Pendiente de cambio educativo · 2023 → {yr_max}"), use_container_width=True, key="slope_educ")
 
     st.markdown("<div class='section-header-panel'>Nivel Educativo por Sexo</div>", unsafe_allow_html=True)
     c3,c4 = st.columns(2)
@@ -706,10 +897,10 @@ with tabs[3]:
         with sub:
             # Semáforo de tendencias pecuarias
             st.markdown(f"<div class='section-header-panel'>🚦 Semáforo de Variación de Existencias · {lbl}</div>", unsafe_allow_html=True)
-            res_p = semaforo_tendencias(D[esp_k], "Especies", unidad="%cab")
+            res_p = build_spark_items(D[esp_k], unidad="%cab")
             if res_p:
                 items_p, ya_p, yb_p = res_p
-                st.markdown(render_semaforo(items_p, ya_p, yb_p, unidad="%cab", umbral_alto=10, umbral_medio=3), unsafe_allow_html=True)
+                st.markdown(render_semaforo_spark(items_p, ya_p, yb_p, unidad="%cab", umbral_alto=10, umbral_medio=3), unsafe_allow_html=True)
 
             st.markdown(f"<div class='section-header-panel'>Existencias por Especie · {lbl}</div>", unsafe_allow_html=True)
             c1,c2 = st.columns(2)
@@ -807,7 +998,7 @@ with tabs[5]:
     with sub_ua1:
         c1,c2 = st.columns(2)
         with c1: st.plotly_chart(safe_bar(D['tam_ua2'],"Distribución de UA por estrato de tamaño · 4 rangos (%)",stack=True),use_container_width=True, key="8f246fa3")
-        with c2: st.plotly_chart(safe_line(D['tam_ua2'],"Evolución temporal por estratos de UA · 4 rangos","Porcentaje","Año"),use_container_width=True, key="e34d2db8")
+        with c2: st.plotly_chart(slope_chart(D['tam_ua2'], f"Pendiente de concentración de tierra · 2023 → {yr_max}"),use_container_width=True, key="slope_ua2")
     with sub_ua2:
         c3,c4 = st.columns(2)
         with c3: st.plotly_chart(safe_bar(D['tam_ua1'],"Distribución de UA por estrato de tamaño · 6 rangos finos (%)",stack=True),use_container_width=True, key="994ec2ef")
