@@ -342,6 +342,7 @@ def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
     fig.update_xaxes(
         title_text=x_title,
         showgrid=False,
+        showline=True,
         linecolor="#CBD5E1",
         tickfont=dict(size=11)
     )
@@ -349,7 +350,7 @@ def apply_premium_layout(fig, title_text, y_title="", x_title="", is_bar=False):
         title_text=y_title,
         showgrid=True,
         gridcolor="#E2E8F0",
-        linecolor="transparent",
+        showline=False,  # Corrección: Desactiva la línea lateral limpiamente en vez de forzar color transparente
         tickfont=dict(size=11)
     )
     if is_bar:
