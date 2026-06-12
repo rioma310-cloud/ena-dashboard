@@ -474,13 +474,38 @@ with tabs[0]:
         yr_proj = max(yrs_disp) + 1
         y_proj = np.polyval(coef, len(yrs_disp))
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=[str(y) for y in yrs_disp], y=yv, mode='lines+markers+text',
-            line=dict(color=C['verde'], width=3),
-            marker=dict(size=9, color=C['verde'], line=dict(color='white',width=2)),
-            text=[f"{v/1e6:.3f}M" for v in yv], textposition='top center',
-            fill='tozeroy', fillcolor='rgba(29,158,117,0.08)', name='Observado'))
+ fig = go.Figure()
+
+fig.add_trace(
+    go.Scatter(
+        x=[str(y) for y in yrs_disp],
+        y=yv,
+        mode='lines+markers+text',
+
+        line=dict(
+            color="#0F766E",
+            width=4
+        ),
+
+        marker=dict(
+            size=11,
+            color="#0F766E",
+            line=dict(
+                color="white",
+                width=2
+            )
+        ),
+
+        text=[f"{v/1e6:.2f} M" for v in yv],
+        textposition="top center",
+
+        fill="tozeroy",
+
+        fillcolor="rgba(15,118,110,0.12)",
+
+        name="Productores"
+    )
+)
 
         # Solo mostrar proyección si 2026 aún no está en los datos
         if yr_proj not in tot:
@@ -491,11 +516,51 @@ with tabs[0]:
                 marker=dict(size=7,symbol='diamond',color=C['naranja']),
                 text=['', f"{y_proj/1e6:.3f}M*"], textposition='top center',
                 textfont=dict(size=10,color=C['naranja']), name=f'Proyección {yr_proj}'))
-        fig.update_layout(title='Total productores/as agropecuarios/as',
-                          yaxis=dict(tickformat=',.0f'), legend=dict(x=0,y=1.12,orientation='h'),
-                          **layout())
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(
 
+    title="Evolución nacional de productores agropecuarios",
+
+    height=520,
+
+    paper_bgcolor="white",
+
+    plot_bgcolor="white",
+
+    title_font=dict(
+        size=22,
+        color="#0F172A"
+    ),
+
+    font=dict(
+        family="Inter",
+        size=14,
+        color="#0F172A"
+    ),
+
+    yaxis=dict(
+        tickformat=",.0f",
+        gridcolor="#E5E7EB"
+    ),
+
+    xaxis=dict(
+        showgrid=False
+    ),
+
+    legend=dict(
+        orientation="h",
+        x=0,
+        y=1.12
+    ),
+
+    margin=dict(
+        l=20,
+        r=20,
+        t=70,
+        b=20
+    ),
+
+    **layout()
+)
     with c2:
         df_s = to_df(D['sexo'])
         fig2 = px.bar(df_s, x='anio', y='valor', color='categoria', barmode='group',
