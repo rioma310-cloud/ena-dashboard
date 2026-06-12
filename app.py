@@ -516,51 +516,51 @@ fig.add_trace(
                 marker=dict(size=7,symbol='diamond',color=C['naranja']),
                 text=['', f"{y_proj/1e6:.3f}M*"], textposition='top center',
                 textfont=dict(size=10,color=C['naranja']), name=f'Proyección {yr_proj}'))
-        fig.update_layout(
+       fig.update_layout(
 
-    title="Evolución nacional de productores agropecuarios",
-
-    height=520,
-
-    paper_bgcolor="white",
-
-    plot_bgcolor="white",
-
-    title_font=dict(
-        size=22,
-        color="#0F172A"
-    ),
-
-    font=dict(
-        family="Inter",
-        size=14,
-        color="#0F172A"
-    ),
-
-    yaxis=dict(
-        tickformat=",.0f",
-        gridcolor="#E5E7EB"
-    ),
-
-    xaxis=dict(
-        showgrid=False
-    ),
-
-    legend=dict(
-        orientation="h",
-        x=0,
-        y=1.12
-    ),
-
-    margin=dict(
-        l=20,
-        r=20,
-        t=70,
-        b=20
-    ),
-
-    **layout()
-)
+            title="Evolución nacional de productores agropecuarios",
+        
+            height=520,
+        
+            paper_bgcolor="white",
+        
+            plot_bgcolor="white",
+        
+            title_font=dict(
+                size=22,
+                color="#0F172A"
+            ),
+        
+            font=dict(
+                family="Inter",
+                size=14,
+                color="#0F172A"
+            ),
+        
+            yaxis=dict(
+                tickformat=",.0f",
+                gridcolor="#E5E7EB"
+            ),
+        
+            xaxis=dict(
+                showgrid=False
+            ),
+        
+            legend=dict(
+                orientation="h",
+                x=0,
+                y=1.12
+            ),
+        
+            margin=dict(
+                l=20,
+                r=20,
+                t=70,
+                b=20
+            ),
+        
+            **layout()
+        )
     with c2:
         df_s = to_df(D['sexo'])
         fig2 = px.bar(df_s, x='anio', y='valor', color='categoria', barmode='group',
