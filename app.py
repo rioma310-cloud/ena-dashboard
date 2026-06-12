@@ -780,7 +780,7 @@ with tabs[4]:
         if isinstance(val,str) and val.startswith('-'): return 'color:#d85a30;font-weight:600'
         return ''
 
-    st.dataframe(df_tabla.style.applymap(color_d, subset=['Δ 2023→2025']),
+    st.dataframe(df_tabla.style.map(color_d, subset=['Δ 2023→2025']),
                  use_container_width=True, hide_index=True, height=500)
 
     csv = df_tabla.to_csv(index=False).encode('utf-8')
