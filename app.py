@@ -50,13 +50,29 @@ def check_password():
 check_password()
 
 # ── Paleta ──────────────────────────────────────────────────────────────────
-C = dict(
-    verde="#1d9e75", azul="#2563a8", naranja="#d85a30", lila="#7c5cbf",
-    rojo="#c0392b", ocre="#ba7517", rosa="#d4537e", teal="#0e9f9f",
-    verde_dk="#1a4731"
-)
-PAL8 = [C['verde'], C['azul'], C['naranja'], C['lila'],
-        C['ocre'], C['rosa'], C['teal'], C['rojo']]
+C = {
+    "primary": "#1E3A8A",
+    "secondary": "#0F766E",
+    "success": "#16A34A",
+    "warning": "#EA580C",
+    "danger": "#DC2626",
+    "purple": "#7C3AED",
+    "cyan": "#0891B2",
+    "dark": "#0F172A",
+    "gray": "#64748B",
+    "light": "#F8FAFC",
+}
+
+PAL8 = [
+    "#1E3A8A",
+    "#0F766E",
+    "#7C3AED",
+    "#EA580C",
+    "#0891B2",
+    "#16A34A",
+    "#DC2626",
+    "#64748B"
+]
 
 YEARS = [2023, 2024, 2025, 2026]
 
@@ -68,24 +84,94 @@ YR20 = {2023: 20, 2024: 22, 2025: 24, 2026: 26}   # hojas de cruce sexo (etnicid
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-[data-testid="stAppViewContainer"] { background:#f4f6fa; }
-.banner { background:linear-gradient(135deg,#1a4731,#1d6b45);
-          color:#fff; padding:16px 22px; border-radius:10px; margin-bottom:16px; }
-.banner h1 { font-size:19px; font-weight:600; margin:0; }
-.banner p  { font-size:11px; margin:3px 0 0; opacity:.7; }
-.kpi { background:#fff; border-radius:10px; padding:13px 16px;
-       border-left:4px solid #1d9e75;
-       box-shadow:0 1px 4px rgba(0,0,0,.07); }
-.kpi-lbl { font-size:10px; color:#777; text-transform:uppercase;
-           letter-spacing:.05em; margin-bottom:3px; }
-.kpi-val { font-size:24px; font-weight:600; color:#111; line-height:1.1; }
-.kpi-d   { font-size:11px; margin-top:3px; }
-.pos { color:#1d9e75; } .neg { color:#d85a30; }
-.sec { font-size:12px; font-weight:600; color:#444; text-transform:uppercase;
-       letter-spacing:.06em; border-bottom:2px solid #1d9e75;
-       padding-bottom:3px; margin:22px 0 12px; }
-.fuente { font-size:10px; color:#aaa; margin-top:14px;
-          padding-top:8px; border-top:.5px solid #ddd; }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+html, body, [class*="css"]{
+    font-family:'Inter',sans-serif;
+}
+
+[data-testid="stAppViewContainer"]{
+    background:#F8FAFC;
+}
+
+[data-testid="stSidebar"]{
+    background:#0F172A;
+}
+
+[data-testid="stSidebar"] *{
+    color:white;
+}
+
+.main-banner{
+    background:linear-gradient(
+    135deg,
+    #0F172A,
+    #1E3A8A);
+    
+    padding:30px;
+    border-radius:18px;
+    color:white;
+    
+    margin-bottom:25px;
+}
+
+.main-title{
+    font-size:34px;
+    font-weight:700;
+}
+
+.main-sub{
+    font-size:14px;
+    opacity:.85;
+}
+
+.kpi-card{
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+}
+
+.kpi-icon{
+    font-size:32px;
+}
+
+.kpi-label{
+    color:#64748B;
+    font-size:12px;
+    text-transform:uppercase;
+}
+
+.kpi-value{
+    font-size:32px;
+    font-weight:700;
+}
+
+.kpi-delta{
+    font-size:13px;
+    font-weight:600;
+}
+
+.insight{
+    background:#ECFEFF;
+    border-left:5px solid #0891B2;
+    border-radius:12px;
+    padding:15px;
+    margin-top:10px;
+}
+
+.stTabs [data-baseweb="tab"]{
+    font-size:15px;
+    font-weight:600;
+}
+
+.stTabs [aria-selected="true"]{
+    background:#1E3A8A;
+    color:white;
+    border-radius:10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -208,18 +294,36 @@ def layout():
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 📂 Cargar Excel ENA")
+
+    st.markdown("## 🌾 ENA Dashboard")
+
     uploaded = st.file_uploader(
-        "Sube `0_var_estruc_factor.xlsx`", type=["xlsx"])
+        "Seleccionar archivo ENA",
+        type=["xlsx"]
+    )
+
     st.markdown("---")
-    st.markdown("**Variables incluidas:**")
-    for v in ["Total productores","% por sexo","% grupos de edad",
-              "% nivel educativo","% tamaño UA","% usos sup. agrícola",
-              "N° parcelas por UA","N° especies pecuarias (cabezas)",
-              "N° productores pecuarios","Sup. agrícola absoluta (M ha)",
-              "% etnicidad del productor"]:
-        st.markdown(f"- {v}")
-    st.caption("ENA 2023–2025 · INEI–DNCE")
+
+    st.markdown("### 📊 Variables")
+
+    variables = [
+        "Productores",
+        "Sexo",
+        "Edad",
+        "Educación",
+        "Etnicidad",
+        "UA",
+        "Parcelas",
+        "Ganadería",
+        "Superficie"
+    ]
+
+    for x in variables:
+        st.markdown(f"✅ {x}")
+
+    st.markdown("---")
+
+    st.caption("INEI · DNCE")
 
 if uploaded is None:
     st.markdown("""
@@ -235,10 +339,19 @@ with st.spinner("Procesando Excel..."):
     D = leer(uploaded.read())
 
 # ── Banner ───────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="banner">
-  <h1>🌾 Perfil del Productor Agropecuario Nacional · ENA</h1>
-  <p>Encuesta Nacional Agropecuaria · INEI · Nivel nacional · 2023–2025 &nbsp;·&nbsp; Actualización automática al subir nuevo Excel</p>
+st.markdown(f"""
+<div class="main-banner">
+
+<div class="main-title">
+🌾 ENA Dashboard Ejecutivo Nacional
+</div>
+
+<div class="main-sub">
+Perfil del Productor Agropecuario Peruano ·
+Encuesta Nacional Agropecuaria ·
+Actualizado hasta {yr_max}
+</div>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -253,29 +366,93 @@ d_pct  = (tot[yr_max] - tot[2023]) / tot[2023] * 100
 rango  = f"2023→{yr_max}"
 
 k1,k2,k3,k4 = st.columns(4)
-kpis = [
-    (f"{tot[yr_max]:,.0f}",
-     f"{'▲' if d_abs>=0 else '▼'} {d_abs:+,.0f} vs {yr_prev}",
-     d_abs>=0, C['verde'], f"Productores {yr_max}"),
-    (f"{tot[yr_prev]:,.0f}",
-     f"{'▲' if tot[yr_prev]>tot[2023] else '▼'} {tot[yr_prev]-tot[2023]:+,.0f} vs 2023",
-     tot[yr_prev]>tot[2023], C['azul'], f"Productores {yr_prev}"),
-    (f"{tot[2023]:,.0f}", "Año base 2023", None, C['naranja'], "Productores 2023"),
-    (f"{d_pct:+.1f}%", f"Variación acumulada {rango}", d_pct>=0, C['lila'], f"Tendencia {rango}"),
-]
-for col, (val, delta, pos, color, lbl) in zip([k1,k2,k3,k4], kpis):
-    dc = "pos" if pos else ("neg" if pos is False else "")
-    with col:
-        st.markdown(f"""
-        <div class="kpi" style="border-left-color:{color}">
-          <div class="kpi-lbl">{lbl}</div>
-          <div class="kpi-val">{val}</div>
-          <div class="kpi-d {dc}">{delta}</div>
-        </div>""", unsafe_allow_html=True)
+
+with k1:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-icon">👨‍🌾</div>
+        <div class="kpi-label">Productores</div>
+        <div class="kpi-value">
+            {tot[yr_max]/1000000:.2f} M
+        </div>
+        <div class="kpi-delta">
+            {d_pct:+.1f}%
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with k2:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-label">Variación anual</div>
+        <div class="kpi-value">
+            {d_abs:,.0f}
+        </div>
+        <div class="kpi-delta">
+            respecto a {yr_prev}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with k3:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-label">Último año</div>
+        <div class="kpi-value">
+            {yr_max}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with k4:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-label">Tendencia</div>
+        <div class="kpi-value">
+            {"↑" if d_pct>0 else "↓"}
+        </div>
+        <div class="kpi-delta">
+            2023 → {yr_max}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+st.markdown("## 📌 Resumen Ejecutivo")
+
+c1,c2 = st.columns([2,1])
+
+with c1:
+
+    st.markdown(f"""
+    <div class="insight">
+    <b>Hallazgo principal:</b><br>
+    El número de productores agropecuarios alcanzó
+    <b>{tot[yr_max]:,.0f}</b> en {yr_max},
+    representando una variación de
+    <b>{d_pct:+.1f}%</b> respecto a 2023.
+    </div>
+    """, unsafe_allow_html=True)
+
+with c2:
+
+    st.metric(
+        "Crecimiento acumulado",
+        f"{d_pct:+.1f}%"
+    )
 
 # ── TAB NAVIGATION ───────────────────────────────────────────────────────────
-tabs = st.tabs(["👤 Perfil demográfico", "🐄 Sector pecuario",
-                "🌱 Superficie agrícola", "🏠 Estructura UA", "📊 Tabla resumen"])
+tabs = st.tabs([
+"📈 Resumen",
+"👤 Productores",
+"🐄 Ganadería",
+"🌱 Agricultura",
+"🏡 Unidad Agropecuaria",
+"📋 Reportes"
+])
 
 # ════════════════════════════════════════════════════════
 # TAB 1 — PERFIL DEMOGRÁFICO
