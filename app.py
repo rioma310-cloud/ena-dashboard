@@ -38,7 +38,7 @@ def check_password():
                                   placeholder="Ingrese el token de seguridad")
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Autenticar Conexión", use_container_width=True):
-                if clave == "ENA_INEI_2025":
+                if clave == "MARIO":
                     st.session_state.autenticado = True
                     st.rerun()
                 else:
@@ -206,8 +206,8 @@ def leer(file_bytes):
     D['edad_sexo4'] = categ_cruce('1.2.2_edad_sexo',   n_sex=2, n_cat=4, sex_col=2, cat_col=3, yc=YR20)
     D['educ']       = categ('1.5.1_nivel_educ_a', 5)
     D['educ_sexo']  = categ_cruce('1.5.2_nivel_educ_a_sexo', n_sex=2, n_cat=5, sex_col=2, cat_col=3, yc=YR20)
-    D['etnicidad']  = categ_cruce('1.3.2_etnicidad_sexo', n_sex=2, n_cat=6, sex_col=2, cat_col=3, yc=YR20)
-    D['idioma']     = categ_cruce('1.3.4_idioma_sexo', n_sex=2, n_cat=4, sex_col=2, cat_col=3, yc=YR20)
+    D['etnicidad']  = categ_cruce('1.3.2_etnicidad_sexo', n_sex=2, n_cat=8, sex_col=2, cat_col=3, yc=YR20)
+    D['idioma']     = categ_cruce('1.3.4_idioma_sexo', n_sex=2, n_cat=7, sex_col=2, cat_col=3, yc=YR20)
     D['tam_ua1']    = categ('4.1.1_tam_ua_1', 6)
     D['tam_ua2']    = categ('4.1.1_tam_ua_2', 4)
     D['tam_ua3']    = categ('4.1.1_tam_ua_3', 4)
@@ -356,6 +356,62 @@ def delta_bar(d, title, yr_a=2023):
     fig.update_xaxes(zeroline=False)
     return fig
 
+def semaforo_tendencias(d, title, unidad="%", umbral_alto=2.0, umbral_medio=0.5):
+    """Tabla visual tipo semáforo: muestra cada categoría con su tendencia.
+    Verde=sube fuerte, amarillo=estable, rojo=baja fuerte."""
+    if not d: return None
+    avail = sorted(set(yr for v in d.values() for yr in v))
+    if len(avail) < 2: return None
+    yr_a, yr_b = avail[0], avail[-1]
+    
+    items = []
+    for cat, yv in d.items():
+        if yr_a in yv and yr_b in yv:
+            delta = yv[yr_b] - yv[yr_a]
+            if unidad == "%cab":  # variación porcentual para cabezas
+                delta_pct = (yv[yr_b]-yv[yr_a])/yv[yr_a]*100 if yv[yr_a] else 0
+                items.append((cat, yv[yr_a], yv[yr_b], delta_pct, delta_pct))
+            else:
+                items.append((cat, yv[yr_a], yv[yr_b], delta, delta))
+    
+    items.sort(key=lambda x: x[4], reverse=True)
+    return items, yr_a, yr_b
+
+def render_semaforo(items, yr_a, yr_b, unidad="%", umbral_alto=2.0, umbral_medio=0.5):
+    """Renderiza HTML de semáforo de tendencias."""
+    html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:10px 0;">'
+    for cat, v0, vf, delta, sortkey in items:
+        if sortkey > umbral_alto:
+            color, bg, icon, txt = "#15803D", "#DCFCE7", "▲▲", "AL ALZA"
+        elif sortkey > umbral_medio:
+            color, bg, icon, txt = "#65A30D", "#ECFCCB", "▲", "LEVE ALZA"
+        elif sortkey >= -umbral_medio:
+            color, bg, icon, txt = "#A16207", "#FEF9C3", "▬", "ESTABLE"
+        elif sortkey >= -umbral_alto:
+            color, bg, icon, txt = "#EA580C", "#FFEDD5", "▼", "LEVE BAJA"
+        else:
+            color, bg, icon, txt = "#B91C1C", "#FEE2E2", "▼▼", "A LA BAJA"
+        
+        if unidad == "%cab":
+            val_disp = f"{delta:+.1f}%"
+            sub = f"{v0:,.0f} → {vf:,.0f}"
+        else:
+            val_disp = f"{delta:+.1f}pp"
+            sub = f"{v0:.1f}% → {vf:.1f}%"
+        
+        html += f"""
+        <div style="background:{bg};border-radius:10px;padding:12px 14px;border-left:4px solid {color};">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:#0F172A;">{cat[:24]}</span>
+            <span style="font-size:9px;font-weight:700;color:{color};background:white;padding:2px 6px;border-radius:10px;">{icon} {txt}</span>
+          </div>
+          <div style="font-size:20px;font-weight:700;color:{color};margin-top:4px;">{val_disp}</div>
+          <div style="font-size:10px;color:#64748B;margin-top:2px;">{sub}</div>
+        </div>"""
+    html += '</div>'
+    return html
+
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
@@ -466,6 +522,32 @@ tabs = st.tabs(["📈 Evolución General","👤 Perfil del Productor","🎓 Educ
 # TAB 0 — EVOLUCIÓN GENERAL
 # ══════════════════════════════════════════════
 with tabs[0]:
+    # ── PANEL SEMÁFORO DE TENDENCIAS CLAVE ──
+    st.markdown("<div class='section-header-panel'>🚦 Semáforo de Tendencias Estructurales Clave</div>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:12px;color:#64748B;margin:-8px 0 12px;'>Variación acumulada de los indicadores demográficos y estructurales más relevantes. Verde = al alza · Amarillo = estable · Rojo = a la baja.</p>", unsafe_allow_html=True)
+
+    # Construir indicadores clave para el semáforo
+    semaforo_data = {}
+    # Sexo
+    for cat, yv in D['sexo'].items():
+        semaforo_data[f"Productores {cat}"] = yv
+    # Edad 65+
+    for cat, yv in D['edad3'].items():
+        if '65' in cat: semaforo_data["Edad 65+ años"] = yv
+        if '15 a 34' in cat: semaforo_data["Edad 15-34 años"] = yv
+    # Educacion
+    for cat, yv in D['educ'].items():
+        if 'Sin nivel' in cat: semaforo_data["Sin nivel educativo"] = yv
+        if 'universitaria' in cat and 'no' not in cat.lower(): semaforo_data["Ed. universitaria"] = yv
+    # Tamaño UA grande
+    for cat, yv in D['tam_ua2'].items():
+        if '10' in cat: semaforo_data["UA grandes (≥10 ha)"] = yv
+
+    res = semaforo_tendencias(semaforo_data, "Tendencias")
+    if res:
+        items, ya, yb = res
+        st.markdown(render_semaforo(items, ya, yb), unsafe_allow_html=True)
+
     st.markdown("<div class='section-header-panel'>Dinámica y Proyección del Volumen Nacional de Productores</div>", unsafe_allow_html=True)
     c1,c2 = st.columns([1.6,1])
     with c1:
@@ -622,18 +704,25 @@ with tabs[3]:
         (sub_p2,'esp_dia','prod_dia','Día de entrevista')
     ]:
         with sub:
+            # Semáforo de tendencias pecuarias
+            st.markdown(f"<div class='section-header-panel'>🚦 Semáforo de Variación de Existencias · {lbl}</div>", unsafe_allow_html=True)
+            res_p = semaforo_tendencias(D[esp_k], "Especies", unidad="%cab")
+            if res_p:
+                items_p, ya_p, yb_p = res_p
+                st.markdown(render_semaforo(items_p, ya_p, yb_p, unidad="%cab", umbral_alto=10, umbral_medio=3), unsafe_allow_html=True)
+
             st.markdown(f"<div class='section-header-panel'>Existencias por Especie · {lbl}</div>", unsafe_allow_html=True)
             c1,c2 = st.columns(2)
             with c1:
                 df_e = to_df(D[esp_k],'cabezas')
                 if not df_e.empty:
                     df_e['anio'] = df_e['anio'].astype(str)
-                    cmap_e={c:PAL8[i%len(PAL8)] for i,c in enumerate(df_e['categoria'].unique())}
-                    fig_e = px.bar(df_e,x='anio',y='cabezas',color='categoria',barmode='group',
-                                   color_discrete_map=cmap_e,text_auto='.2s',
-                                   labels={'cabezas':'Cabezas','anio':'Año','categoria':'Especie'})
+                    fig_e = px.bar(df_e,x='categoria',y='cabezas',color='anio',barmode='group',
+                                   color_discrete_map={'2023':PAL8[0],'2024':PAL8[1],'2025':PAL8[2],'2026':PAL8[3]},
+                                   text_auto='.2s',
+                                   labels={'cabezas':'Cabezas','categoria':'Especie','anio':'Año'})
                     fig_e = apply_premium_layout(fig_e,f"N° de cabezas por especie · {lbl}",
-                                                 "Cabezas","Año",is_bar=True)
+                                                 "Cabezas","Especie",is_bar=True)
                     st.plotly_chart(fig_e,use_container_width=True, key=f"esp_bar_{esp_k}")
             with c2:
                 st.plotly_chart(safe_line(D[esp_k],f"Tendencia de cabezas por especie · {lbl}",
