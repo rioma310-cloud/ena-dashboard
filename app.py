@@ -1067,6 +1067,11 @@ with tabs[6]:
 
     df_tabla = pd.DataFrame(rows)
     col_d = 'Δ 2023→'+str(yr_max)
+    # Ordenar columnas: Indicador, Categoría, años en orden, delta al final
+    year_cols = sorted([c for c in df_tabla.columns if c.isdigit()])
+    col_order = ['Indicador','Categoría'] + year_cols + [col_d]
+    df_tabla = df_tabla[[c for c in col_order if c in df_tabla.columns]]
+    df_tabla = df_tabla.fillna("—")
 
     def style_v(val):
         if isinstance(val,str) and ('+' in val) and '-' not in val:
